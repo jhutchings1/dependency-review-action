@@ -315,13 +315,7 @@ export function addScorecardToSummary(
     core.debug(`Overall score ${dependency.scorecard?.score}`)
 
     // Set the icon based on the overall score value
-    let overallIcon = ''
-    if (dependency.scorecard?.score) {
-      overallIcon =
-        dependency.scorecard?.score < config.warn_on_openssf_scorecard_level
-          ? ':warning:'
-          : ':green_circle:'
-    }
+    let overallIcon = getScorecardIcon(dependency.scorecard?.score, config.warn_on_openssf_scorecard_level)
 
     //Add a row for the dependency
     core.summary.addRaw(
@@ -336,9 +330,7 @@ export function addScorecardToSummary(
         '<table><tr><th>Check</th><th>Score</th><th>Reason</th></tr>'
       for (const check of dependency.scorecard?.checks || []) {
         const icon =
-          parseFloat(check.score) < config.warn_on_openssf_scorecard_level
-            ? ':warning:'
-            : ':green_circle:'
+          getScorecardIcon(check.score, config.warn_on_openssf_scorecard_level)
 
         detailsTable += `<tr><td>${check.name}</td><td>${icon} ${check.score}</td><td>${check.reason}</td></tr>`
       }
@@ -355,6 +347,20 @@ export function addScorecardToSummary(
   if (scorecard.dependencies.length > 10) {
     core.summary.addRaw(`</details>`)
   }
+}
+
+function getScorecardIcon(score: number, warn_level: number) {
+  let icon = ''
+  if (score) {
+    if (score >= warn_level) {
+      icon = ':green_circle:'
+    } else if (score < warn_level) {
+      icon = ':warning:'
+    } 
+  } else {
+    icon = ':question:'
+  }
+  return icon
 }
 
 export function addSnapshotWarnings(

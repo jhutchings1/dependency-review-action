@@ -320,7 +320,7 @@ export function addScorecardToSummary(
     //Add a row for the dependency
     core.summary.addRaw(
       `<tr><td>${dependency.change.source_repository_url ? `<a href="${dependency.change.source_repository_url}">` : ''} ${dependency.change.ecosystem}/${dependency.change.name} ${dependency.change.source_repository_url ? `</a>` : ''}</td><td>${dependency.change.version}</td>
-      <td>${overallIcon} ${dependency.scorecard?.score === undefined || dependency.scorecard?.score === null ? 'Unknown' : dependency.scorecard?.score}</td>`,
+      <td>${overallIcon} ${printScorecardLabel(dependency)}</td>`,
       false
     )
 
@@ -349,15 +349,31 @@ export function addScorecardToSummary(
   }
 }
 
+function printScorecardLabel(dependency: any) {
+  let label = '';
+  if (dependency.scorecard?.score) {
+    if (dependency.scorecard?.score == -1 ) { 
+      // -1 is returned when the scorecard didn't find any evidence of progress in a category. 
+      // We normalize this to a score of 0, since you don't lose points for it
+      label = '0'
+    } else {
+      label = dependency.scorecard?.score
+    }
+  } else {
+    label = 'Unknown'
+  }
+  return label
+}
+
 function getScorecardIcon(score: number, warn_level: number) {
   let icon = ''
-  if (score) {
+  if (score) { // If we have a score, then we'll show a green circle or a warning emoji
     if (score >= warn_level) {
       icon = ':green_circle:'
     } else if (score < warn_level) {
       icon = ':warning:'
     } 
-  } else {
+  } else { // If we don't have a score, we'll show a question mark
     icon = ':question:'
   }
   return icon
